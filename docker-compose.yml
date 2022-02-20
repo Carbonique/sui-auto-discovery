@@ -21,7 +21,7 @@ services:
       - config:/config
 
   sui-web:
-    image:
+    image: ghcr.io/carbonique/sui:1.0.0
     ports:
       - "80:80"
     volumes:

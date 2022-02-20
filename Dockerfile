@@ -14,7 +14,7 @@ FROM alpine:3.15
 
 WORKDIR /app
 
-COPY --from=build /build/apps_discoverer auto-updater
+COPY --from=build /build/auto-updater auto-updater
 
 ENTRYPOINT ["/app/auto-updater"]
 CMD ["--apps-config=/config/apps.json", "--check-interval=30"]
