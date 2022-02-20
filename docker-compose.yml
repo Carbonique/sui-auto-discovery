@@ -1,0 +1,31 @@
+version: "3.5"
+
+services:
+  dockerproxy:
+    image: tecnativa/docker-socket-proxy
+    container_name: dockerproxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "2375:2375"
+    environment:
+      CONTAINERS: 1
+
+  sui-auto-updater:
+    image:
+    environment:
+      DOCKER_HOST: tcp://dockerproxy:2375
+    depends_on:
+      - dockerproxy
+    volumes:
+      - config:/config
+
+  sui-web:
+    image:
+    ports:
+      - "80:80"
+    volumes:
+      - web:/app/dashboard
+
+volumes:
+  web:
