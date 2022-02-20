@@ -48,4 +48,6 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
-          tags: ${{ env.REGISTRY }}/carbonique/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.tag }}
+          tags: |
+            ${{ env.REGISTRY }}/carbonique/${{ env.IMAGE_NAME }}:${{ steps.vars.outputs.tag }}
+            ${{ env.REGISTRY }}/carbonique/${{ env.IMAGE_NAME }}:latest
