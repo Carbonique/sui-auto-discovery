@@ -7,16 +7,16 @@ Tiny Go program to automatically add apps to the [SUI](https://github.com/jeroen
 1. Install Docker Compose
 2. Clone the repository
 3. Run `docker-compopse up -d`. The `docker-compose.yml` includes SUI as well.
-4. Attach labels to containers to be added to the apps section as instructed [here](#container labels).
+4. Attach labels to containers to be added to the apps section as instructed [here](#container-labels).
 5. Go to `localhost:4000`
 
 ### Container labels
 
 For now only containers can be automatically added to the 'apps' section. To do so, attach the following labels (and label values) to your container:
 
-1. sui.app.icon=<[Material Design icon](https://materialdesignicons.com/) to display
-2. sui.app.name=<name to display>
-3. sui.app.url=<url to display>
+1. `sui.app.icon=< Material Design icon to display>` [See: materialdesignicons.com](https://materialdesignicons.com/)
+2. `sui.app.name=<name to display>`
+3. `sui.app.url=<url to display>`
 
 *examples:*
 
@@ -39,15 +39,17 @@ services:
     ports:
       - "80:80"
     labels:
-    -"sui.app.icon=web"
-    -"sui.app.name=nginx"
-    -"sui.app.url=nginx.mydomain.xyz"
+      - "sui.app.icon=web"
+      - "sui.app.name=nginx"
+      - "sui.app.url=nginx.mydomain.xyz"
 ```
 
 ### Flags
 
 `apps-config`: Location of apps.json file (default "/config/apps.json")
+
 `check-interval`: Interval in seconds for checking container labels (default 30)
+
 `run-mode`: Run mode (interval vs. once) (default "interval")
 
 ### Security
