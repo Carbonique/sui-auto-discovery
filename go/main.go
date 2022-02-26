@@ -25,24 +25,38 @@ type Apps struct {
 
 func main(){
 	filename := flag.String("apps-config", "/config/apps.json", "Location of apps.json file")
+	mode := flag.String("run-mode", "interval", "Run mode (interval vs. once)")
 	interval := flag.Int("check-interval", 30, "Interval in seconds for checking container labels")
 	flag.Parse()
 
   checkFileExists(*filename)
 
-	for {
+	if *mode == "once" {
 		fmt.Println()
 		fmt.Println("Starting run")
 		fmt.Println("---------------------")
 		fmt.Println()
-    updateJson(*filename)
+		updateJson(*filename)
 		fmt.Println()
 		fmt.Println("---------------------")
 		fmt.Println("Stopping run")
 		fmt.Println()
-		time.Sleep(time.Duration(*interval) * time.Second)
-  }
-
+	} else if *mode == "interval" {
+		for {
+			fmt.Println()
+			fmt.Println("Starting run")
+			fmt.Println("---------------------")
+			fmt.Println()
+	    updateJson(*filename)
+			fmt.Println()
+			fmt.Println("---------------------")
+			fmt.Println("Stopping run")
+			fmt.Println()
+			time.Sleep(time.Duration(*interval) * time.Second)
+	  }
+	} else {
+		fmt.Println("Unknown run mode")
+	}
 }
 
 func checkFileExists(filename string) error {

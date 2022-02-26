@@ -1,4 +1,4 @@
-module dockertest
+module sui-auto-discovery
 
 go 1.17
 
