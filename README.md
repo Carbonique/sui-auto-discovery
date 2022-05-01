@@ -1,6 +1,6 @@
-## SUI auto discovery
+## SUI auto updater
 
-Tiny Go program to automatically add apps to the [SUI](https://github.com/jeroenpardon/sui) apps section.
+Tiny Go program to automatically configure the [SUI](https://github.com/jeroenpardon/sui) apps section.
 
 ### Deployment
 
