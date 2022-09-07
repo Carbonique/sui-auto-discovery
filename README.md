@@ -48,10 +48,6 @@ services:
 
 `apps-config`: Location of apps.json file (default "/config/apps.json")
 
-`check-interval`: Interval in seconds for checking container labels (default 30)
-
-`run-mode`: Run mode (interval vs. once) (default "interval")
-
 ### Security
 
 To discover labels attached to containers, the Docker Socket has to be reachable.

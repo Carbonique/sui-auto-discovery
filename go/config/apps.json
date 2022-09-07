@@ -1,0 +1,9 @@
+{
+  "apps": [
+    {
+      "name": "nginx",
+      "url": "nginx.mydomain.xyz",
+      "icon": "web"
+    }
+  ]
+}
