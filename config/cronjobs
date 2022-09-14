@@ -1,0 +1,3 @@
+
+
+* * * * * /app/sui-auto-discovery --apps-config=/config/apps.json  > /proc/1/fd/1 2> /proc/1/fd/2

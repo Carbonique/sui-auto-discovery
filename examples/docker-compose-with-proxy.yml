@@ -12,7 +12,7 @@ services:
       CONTAINERS: 1
 
   sui-auto-discovery:
-    image: ghcr.io/carbonique/sui-auto-discovery:1.0.0
+    image: ghcr.io/carbonique/sui-auto-discovery:1.1.0
     environment:
       DOCKER_HOST: tcp://dockerproxy:2375
     depends_on:

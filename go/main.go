@@ -2,139 +2,154 @@ package main
 
 import (
 	"context"
-  "encoding/json"
-  "io/ioutil"
-  "os"
-	"fmt"
-  "github.com/docker/docker/api/types"
-	"github.com/docker/docker/client"
-	"time"
+	"encoding/json"
 	"flag"
-	"strings"
+	"log"
+	"os"
+
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 )
 
 type App struct {
-  Name  string `json:"name"`
-  Url   string `json:"url"`
-  Icon  string `json:"icon"`
+	Name string `json:"name"`
+	Url  string `json:"url"`
+	Icon string `json:"icon"`
 }
 
-type Apps struct {
-  Apps []App `json:"apps"`
-}
+func main() {
 
-func main(){
-	filename := flag.String("apps-config", "/config/apps.json", "Location of apps.json file")
-	mode := flag.String("run-mode", "interval", "Run mode (interval vs. once)")
-	interval := flag.Int("check-interval", 30, "Interval in seconds for checking container labels")
+	outputFile := flag.String("apps-config", "./config/apps.json", "Location of apps.json file")
 	flag.Parse()
 
-  checkFileExists(*filename)
+	log.Println("Run started")
 
-	if *mode == "once" {
-		fmt.Println()
-		fmt.Println("Starting run")
-		fmt.Println("---------------------")
-		fmt.Println()
-		updateJson(*filename)
-		fmt.Println()
-		fmt.Println("---------------------")
-		fmt.Println("Stopping run")
-		fmt.Println()
-	} else if *mode == "interval" {
-		for {
-			fmt.Println()
-			fmt.Println("Starting run")
-			fmt.Println("---------------------")
-			fmt.Println()
-	    updateJson(*filename)
-			fmt.Println()
-			fmt.Println("---------------------")
-			fmt.Println("Stopping run")
-			fmt.Println()
-			time.Sleep(time.Duration(*interval) * time.Second)
-	  }
-	} else {
-		fmt.Println("Unknown run mode")
+	containers, err := getContainers()
+	if err != nil {
+		log.Fatal(err.Error())
 	}
+
+	apps, err := parseLabels(containers)
+
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	err = writeAppsFile(apps, *outputFile)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	log.Println("Run finished")
 }
 
-func checkFileExists(filename string) error {
-    _, err := os.Stat(filename)
-        if os.IsNotExist(err) {
-            _, err := os.Create(filename)
-                if err != nil {
-                    return err
-                }
-        }
-        return nil
+//parseLabels retrieves Docker containers with sui labels
+func parseLabels(containers []types.Container) ([]App, error) {
+
+	apps := []App{}
+	for _, container := range containers {
+
+		app := newApp(container)
+
+		// If app is empty, we do not append
+		if app == (App{}) {
+			log.Println("Container has no sui labels")
+			continue
+		}
+		apps = append(apps, app)
+	}
+	return apps, nil
 }
 
+// writeAppsFile writes apps to a json file. outputFile will be created if it does not exist.
+// outputFile will always be overwritten.
+func writeAppsFile(apps []App, outputFile string) error {
 
-func updateJson(filename string){
-	  containers := getContainers()
+	err := createFileIfNotExists(outputFile)
+	if err != nil {
+		return err
+	}
 
-	  apps_empty := []App{}
-		apps := Apps{apps_empty}
+	a := struct {
+		Apps []App `json:"apps"`
+	}{
+		apps,
+	}
 
-	  for _, container := range containers {
-			fmt.Println("---")
-			fmt.Println("Found container with name:", strings.Trim(fmt.Sprint(container.Names), "/[]"))
-			app := App{}
-
-	    for key, value := range container.Labels{
-	      if key == "sui.app.name" {
-					fmt.Printf("Container label sui.app.name: %s\n", value)
-	        app.Name = value
-	      }
-	      if key == "sui.app.url" {
-	        app.Url = value
-					fmt.Printf("Container label sui.app.url: %s\n", value)
-	      }
-	      if key == "sui.app.icon" {
-	        app.Icon = value
-					fmt.Printf("Container label sui.app.icon: %s\n", value)
-	      }
-	    }
-			if (App{}) != app  {
-	    	  apps.AddItem(app)
-			} else {
-				fmt.Println("Container has no sui labels")
-			}
-			fmt.Println("---")
-	  }
-
-	  writeJson(filename, apps)
+	data, err := json.MarshalIndent(a, "", "  ")
+	if err != nil {
+		return err
+	}
+	err = os.WriteFile(outputFile, data, 0755)
+	if err != nil {
+		return err
+	}
+	return nil
 
 }
 
-func getContainers() []types.Container {
-  ctx := context.Background()
+func newApp(c types.Container) App {
+	log.Printf("Parsing labels from container: %+q", c.Names)
+
+	app := App{}
+
+	app.Name = parseName(c.Labels)
+	app.Url = parseUrl(c.Labels)
+	app.Icon = parseIcon(c.Labels)
+
+	return app
+
+}
+
+func parseName(m map[string]string) string {
+	if val, ok := m["sui.app.name"]; ok {
+		log.Printf("Container label sui.app.name: %s\n", val)
+		return val
+	}
+	return ""
+}
+
+func parseUrl(m map[string]string) string {
+	if val, ok := m["sui.app.url"]; ok {
+		log.Printf("Container label sui.app.url: %s\n", val)
+		return val
+	}
+	return ""
+}
+
+func parseIcon(m map[string]string) string {
+	if val, ok := m["sui.app.icon"]; ok {
+		log.Printf("Container label sui.app.icon: %s\n", val)
+		return val
+	}
+	return ""
+}
+
+func getContainers() ([]types.Container, error) {
+	ctx := context.Background()
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		panic(err)
+		return []types.Container{}, err
 	}
 
-  containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
-  if err != nil {
-    panic(err)
-  }
+	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
+	if err != nil {
+		return []types.Container{}, err
+	}
 
-  return containers
+	return containers, nil
 
 }
 
-func (apps *Apps) AddItem(app App) []App {
-	apps.Apps = append(apps.Apps, app)
-	return apps.Apps
-}
+func createFileIfNotExists(file string) error {
+	_, err := os.Stat(file)
 
-func writeJson(filename string, apps Apps){
-  dat, err := json.MarshalIndent(apps, "", "    ")
-  if err != nil {
-    panic(err)
-  }
+	if os.IsNotExist(err) {
 
-  err = ioutil.WriteFile(filename, dat, 0644)
-
+		_, err := os.Create(file)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

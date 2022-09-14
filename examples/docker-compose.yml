@@ -2,8 +2,8 @@ version: "3.5"
 
 services:
 
-  sui-auto-updater:
-    image: ghcr.io/carbonique/sui-auto-updater:1.0.1
+  sui-auto-discovery:
+    image: ghcr.io/carbonique/sui-auto-discovery:1.1.0
     volumes:
       - web:/config
       - /var/run/docker.sock:/var/run/docker.sock:ro
