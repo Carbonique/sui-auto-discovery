@@ -4,7 +4,7 @@ Tiny Go program to automatically add apps to the [SUI](https://github.com/jeroen
 
 ## How it works
 
-A tiny Go program that does the following:
+The Go binary does the following: 
 
 1. Fetch all containers from the Docker socket
 2. Look for containers with sui.app.xxx labels
@@ -14,7 +14,7 @@ A tiny Go program that does the following:
 
 1. Install Docker Compose
 2. Clone the repository
-3. Run `docker-compopse up -d`. The `docker-compose.yml` includes SUI as well.
+3. Run `docker-compose up -d`. The `docker-compose.yml` includes SUI as well.
 4. Attach labels to containers to be added to the apps section as instructed [here](#container-labels).
 5. Go to `localhost:4000`
 
