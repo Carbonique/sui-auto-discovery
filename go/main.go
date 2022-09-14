@@ -4,11 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
-	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -25,28 +22,29 @@ func main() {
 	outputFile := flag.String("apps-config", "./config/apps.json", "Location of apps.json file")
 	flag.Parse()
 
-	log.Println("Starting run")
+	log.Println("Run started")
 
-	err := writeAppsFile(*outputFile)
+	containers, err := getContainers()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	apps, err := parseLabels(containers)
 
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
-	log.Println("Stopping run")
+	err = writeAppsFile(apps, *outputFile)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	log.Println("Run finished")
 }
 
-func writeAppsFile(outputFile string) error {
-
-	err := createFileIfNotExists(outputFile)
-	if err != nil {
-		return err
-	}
-
-	containers, err := getContainers()
-	if err != nil {
-		return err
-	}
+//parseLabels retrieves Docker containers with sui labels
+func parseLabels(containers []types.Container) ([]App, error) {
 
 	apps := []App{}
 	for _, container := range containers {
@@ -60,54 +58,69 @@ func writeAppsFile(outputFile string) error {
 		}
 		apps = append(apps, app)
 	}
+	return apps, nil
+}
 
-	err = toJson(apps, outputFile)
+// writeAppsFile writes apps to a json file. outputFile will be created if it does not exist.
+// outputFile will always be overwritten.
+func writeAppsFile(apps []App, outputFile string) error {
 
+	err := createFileIfNotExists(outputFile)
 	if err != nil {
 		return err
 	}
 
+	a := struct {
+		Apps []App `json:"apps"`
+	}{
+		apps,
+	}
+
+	data, err := json.MarshalIndent(a, "", "  ")
+	if err != nil {
+		return err
+	}
+	err = os.WriteFile(outputFile, data, 0755)
+	if err != nil {
+		return err
+	}
 	return nil
+
 }
 
 func newApp(c types.Container) App {
-	log.Println("Parsing labels from container:", strings.Trim(fmt.Sprint(c.Names), "/[]"))
+	log.Printf("Parsing labels from container: %+q", c.Names)
+
 	app := App{}
 
-	app.Name = parseName(c)
-	app.Url = parseUrl(c)
-	app.Icon = parseIcon(c)
+	app.Name = parseName(c.Labels)
+	app.Url = parseUrl(c.Labels)
+	app.Icon = parseIcon(c.Labels)
 
 	return app
 
 }
 
-func parseName(c types.Container) string {
-	for key, value := range c.Labels {
-		if key == "sui.app.name" {
-			log.Printf("Container label sui.app.name: %s\n", value)
-			return value
-		}
+func parseName(m map[string]string) string {
+	if val, ok := m["sui.app.name"]; ok {
+		log.Printf("Container label sui.app.name: %s\n", val)
+		return val
 	}
 	return ""
 }
 
-func parseUrl(c types.Container) string {
-	for key, value := range c.Labels {
-		if key == "sui.app.url" {
-			log.Printf("Container label sui.app.url: %s\n", value)
-			return value
-		}
+func parseUrl(m map[string]string) string {
+	if val, ok := m["sui.app.url"]; ok {
+		log.Printf("Container label sui.app.url: %s\n", val)
+		return val
 	}
 	return ""
 }
 
-func parseIcon(c types.Container) string {
-	for key, value := range c.Labels {
-		if key == "sui.app.icon" {
-			log.Printf("Container label sui.app.icon: %s\n", value)
-			return value
-		}
+func parseIcon(m map[string]string) string {
+	if val, ok := m["sui.app.icon"]; ok {
+		log.Printf("Container label sui.app.icon: %s\n", val)
+		return val
 	}
 	return ""
 }
@@ -130,29 +143,13 @@ func getContainers() ([]types.Container, error) {
 
 func createFileIfNotExists(file string) error {
 	_, err := os.Stat(file)
+
 	if os.IsNotExist(err) {
+
 		_, err := os.Create(file)
 		if err != nil {
 			return err
 		}
-	}
-	return nil
-}
-
-func toJson(apps []App, file string) error {
-	a := struct {
-		Apps []App `json:"apps"`
-	}{
-		apps,
-	}
-
-	dat, err := json.MarshalIndent(a, "", "  ")
-	if err != nil {
-		return err
-	}
-	err = ioutil.WriteFile(file, dat, 0755)
-	if err != nil {
-		return err
 	}
 	return nil
 }

@@ -3,7 +3,7 @@ version: "3.5"
 services:
 
   sui-auto-discovery:
-    image: ghcr.io/carbonique/sui-auto-discovery:1.0.0
+    image: ghcr.io/carbonique/sui-auto-discovery:1.1.0
     volumes:
       - web:/config
     logging:

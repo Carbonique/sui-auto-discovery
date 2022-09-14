@@ -1,8 +1,16 @@
-## SUI auto discovery
+# SUI auto discovery
 
-Tiny Go program to automatically add apps to the [SUI](https://github.com/jeroenpardon/sui) apps section.
+Tiny Go program to automatically add apps to the [SUI](https://github.com/jeroenpardon/sui) apps section by using Docker labels
 
-### Deployment
+## How it works
+
+A tiny Go program that does the following:
+
+1. Fetch all containers from the Docker socket
+2. Look for containers with sui.app.xxx labels
+3. Write these labels to the JSON config file used by SUI.
+
+## Deployment
 
 1. Install Docker Compose
 2. Clone the repository
