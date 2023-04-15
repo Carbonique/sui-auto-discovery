@@ -43,7 +43,7 @@ func main() {
 	log.Println("Run finished")
 }
 
-//parseLabels retrieves Docker containers with sui labels
+// parseLabels retrieves Docker containers with sui labels
 func parseLabels(containers []types.Container) ([]App, error) {
 
 	apps := []App{}
