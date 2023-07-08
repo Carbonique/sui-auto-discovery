@@ -1,4 +1,4 @@
-module sui-auto-discovery
+module github.com/carbonique/sui-auto-discovery
 
 go 1.20
 
