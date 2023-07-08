@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches-ignore:
+      - 'main'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set tag variable
+        id: vars
+        run: echo ::set-output name=tag::${GITHUB_REF##*/}
+
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ steps.vars.outputs.tag }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.20
+
+      - name: Go Mod
+        run: go mod download && go mod vendor
+
+      - name: Unit Tests
+        run: go test ./go/
+
