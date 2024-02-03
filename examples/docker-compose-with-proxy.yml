@@ -6,10 +6,10 @@ services:
     container_name: dockerproxy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - "2375:2375"
     environment:
       CONTAINERS: 1
+    networks:
+      - proxy
 
   sui-auto-discovery:
     image: ghcr.io/carbonique/sui-auto-discovery:1.1.1
@@ -23,6 +23,8 @@ services:
         driver: "json-file"
         options:
             max-size: "10m"
+    networks:
+      - proxy
 
   sui-web:
     image: ghcr.io/carbonique/sui:1.0.0
@@ -30,6 +32,12 @@ services:
       - "4000:80"
     volumes:
       - web:/app/dashboard
+    networks:
+      - web_external
 
 volumes:
   web:
+
+networks:
+  web_external:
+  proxy:
