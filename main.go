@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 )
 
@@ -132,7 +133,7 @@ func getContainers() ([]types.Container, error) {
 		return []types.Container{}, err
 	}
 
-	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
+	containers, err := cli.ContainerList(ctx, container.ListOptions{})
 	if err != nil {
 		return []types.Container{}, err
 	}

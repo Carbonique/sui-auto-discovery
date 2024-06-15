@@ -1,4 +1,4 @@
-FROM golang:1.20-alpine AS build
+FROM golang:1.22-alpine AS build
 
 WORKDIR /build
 COPY go.mod go.sum *.go ./
@@ -7,7 +7,7 @@ RUN go mod download
 
 RUN CGO_ENABLED=0 go build -o sui-auto-discovery
 
-FROM alpine:3.15
+FROM alpine:3.19
 
 WORKDIR /app
 
