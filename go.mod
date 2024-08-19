@@ -2,7 +2,7 @@ module github.com/carbonique/sui-auto-discovery
 
 go 1.22
 
-require github.com/docker/docker v27.0.3+incompatible
+require github.com/docker/docker v27.1.2+incompatible
 
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect
